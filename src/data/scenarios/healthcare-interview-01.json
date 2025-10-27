@@ -1,0 +1,77 @@
+{
+  "scenarioId": "healthcare-interview-01",
+  "projectName": "医療ポータルシステム開発",
+  "userName": "田中 太郎",
+  "messages": [
+    {
+      "role": "project_agent",
+      "content": "こんにちは。医療ポータルシステム開発プロジェクトのエージェント、MediCareアシスタントです。本日は面接の機会をいただきありがとうございます。",
+      "timestamp": 0
+    },
+    {
+      "role": "user_agent",
+      "content": "こんにちは。田中太郎さんの専属エージェント、TechAdvisorです。よろしくお願いします。田中さんは医療系システム開発に5年の経験があります。",
+      "timestamp": 2000
+    },
+    {
+      "role": "project_agent",
+      "content": "素晴らしいですね。このプロジェクトでは患者データの安全な管理が重要です。田中さんは個人情報保護やGDPR対応の経験はありますか？",
+      "timestamp": 5000
+    },
+    {
+      "role": "user_agent",
+      "content": "はい、田中さんは前職で電子カルテシステムの開発に携わっており、医療情報の取り扱いに関する法令遵守や暗号化技術の実装経験があります。",
+      "timestamp": 8000
+    },
+    {
+      "role": "project_agent",
+      "content": "それは心強いです。技術スタックについてお聞きします。ReactとTypeScriptの経験レベルはいかがでしょうか？",
+      "timestamp": 11000
+    },
+    {
+      "role": "user_agent",
+      "content": "田中さんはReactを3年、TypeScriptを2年使用しています。最近ではNext.jsを使った医療機関向けポータルサイトの開発リーダーを務めました。",
+      "timestamp": 14000
+    },
+    {
+      "role": "project_agent",
+      "content": "完璧です。バックエンドではNode.jsとPythonが候補に挙がっていますが、どちらの経験がありますか？",
+      "timestamp": 17000
+    },
+    {
+      "role": "user_agent",
+      "content": "両方とも経験があります。特にNode.js + Express + PostgreSQLの組み合わせで複数のRESTful API開発を行ってきました。Pythonは主にデータ分析で使用しています。",
+      "timestamp": 20000
+    },
+    {
+      "role": "project_agent",
+      "content": "素晴らしい経験ですね。最後に、このプロジェクトは6ヶ月の予定ですが、フルタイムでの参加は可能でしょうか？",
+      "timestamp": 23000
+    },
+    {
+      "role": "user_agent",
+      "content": "はい、田中さんは現在のプロジェクトが来月完了予定で、その後フルタイムでの参加が可能です。週40時間のコミットメントができます。",
+      "timestamp": 26000
+    },
+    {
+      "role": "project_agent",
+      "content": "ありがとうございます。田中さんのスキルと経験は、このプロジェクトに非常にマッチしています。医療系システムの経験、セキュリティ知識、そして必要な技術スタックを全て満たしていますね。",
+      "timestamp": 29000
+    },
+    {
+      "role": "user_agent",
+      "content": "ありがとうございます。田中さんもこのプロジェクトに大変興味を持っています。社会貢献性の高い医療分野で、自身のスキルを活かせることを楽しみにしています。",
+      "timestamp": 32000
+    },
+    {
+      "role": "project_agent",
+      "content": "それでは、田中太郎さんをチームメンバーとして歓迎いたします。詳細は追って連絡させていただきます。本日はありがとうございました。",
+      "timestamp": 35000
+    }
+  ],
+  "result": {
+    "decision": "PASSED",
+    "score": 95,
+    "reasoning": "医療系システム開発経験5年、セキュリティ対策の知識、必要な技術スタック(React, TypeScript, Node.js, PostgreSQL)の経験、フルタイム参加可能。全ての要件を満たしており、プロジェクトへの高い適合性を示している。"
+  }
+}

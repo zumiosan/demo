@@ -1,0 +1,339 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      UserRole @default(MEMBER) // PM or MEMBER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // スキル・希望 (JSON形式で格納)
+  skills       String[] // ["AI", "医療系", "銀行系", "Java", "Python"]
+  industries   String[] // 興味のある業界
+  preferences  Json?    // その他の希望条件
+
+  // リレーション
+  agent        Agent?       @relation("UserAgent")
+  teamMembers  TeamMember[]
+  interviews   Interview[]
+  assignedTasks Task[]
+  offers       Offer[]
+  taskConversations TaskConversation[]
+  projectConversations ProjectConversation[]
+  notifications ProjectNotification[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// AIエージェント
+model Agent {
+  id          String   @id @default(cuid())
+  name        String
+  type        AgentType // project / user / task
+  personality String?  // エージェントの性格・特徴
+  capabilities Json?   // 能力・専門分野
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // リレーション
+  user      User?    @relation("UserAgent", fields: [userId], references: [id])
+  userId    String?  @unique
+
+  project   Project? @relation("ProjectAgent")
+
+  task      Task?    @relation("TaskAgent")
+
+  agentBanks AgentBank[]
+
+  @@index([type])
+}
+
+// プロジェクト
+model Project {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  requirementsDoc String?       @db.Text // Markdown形式の要件定義書
+  status          ProjectStatus @default(PLANNING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // リレーション
+  agent           Agent?        @relation("ProjectAgent", fields: [agentId], references: [id])
+  agentId         String?       @unique
+
+  tasks           Task[]
+  teamMembers     TeamMember[]
+  interviews      Interview[]
+  offers          Offer[]
+  taskReports     TaskReport[]
+  conversations   ProjectConversation[]
+  notifications   ProjectNotification[]
+  agentBanks      AgentBank[]
+
+  @@index([status])
+}
+
+// タスク
+model Task {
+  id          String     @id @default(cuid())
+  name        String
+  description String?    @db.Text
+  status      TaskStatus @default(TODO)
+  progress    Int        @default(0) // 0-100
+
+  // 日程
+  startDate   DateTime?
+  endDate     DateTime?
+
+  // 自動実行フラグ
+  autoExecutable Boolean  @default(false)
+  executionLog   Json?    // 実行ログ
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // リレーション
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+
+  assignedUser User?     @relation(fields: [assignedUserId], references: [id])
+  assignedUserId String?
+
+  agent       Agent?     @relation("TaskAgent", fields: [agentId], references: [id])
+  agentId     String?    @unique
+
+  // 依存関係（自己参照）
+  dependencies Task[]    @relation("TaskDependencies")
+  dependents   Task[]    @relation("TaskDependencies")
+
+  conversations TaskConversation[]
+  reports      TaskReport[]
+
+  @@index([projectId])
+  @@index([assignedUserId])
+  @@index([status])
+}
+
+// 面接
+model Interview {
+  id          String          @id @default(cuid())
+  status      InterviewStatus @default(PENDING)
+  result      InterviewResult?
+  scenarioData Json?          // シナリオデータ
+  conversationLog Json?       // 会話ログ
+  score       Int?            // マッチングスコア
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // リレーション
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  offer       Offer?
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+}
+
+// チームメンバー
+model TeamMember {
+  id        String   @id @default(cuid())
+  role      String?  // 役割
+  joinedAt  DateTime @default(now())
+
+  // リレーション
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@unique([projectId, userId]) // 同じプロジェクトに同じユーザーは1回のみ
+  @@index([projectId])
+  @@index([userId])
+}
+
+// Enums
+enum AgentType {
+  PROJECT
+  USER
+  TASK
+}
+
+enum ProjectStatus {
+  PLANNING
+  RECRUITING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum InterviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum InterviewResult {
+  PASSED
+  FAILED
+  PENDING
+}
+
+enum UserRole {
+  PM      // プロジェクトマネージャー
+  MEMBER  // メンバー
+}
+
+enum OfferStatus {
+  PENDING   // 保留中
+  ACCEPTED  // 承諾済み
+  REJECTED  // 辞退済み
+}
+
+// オファー
+model Offer {
+  id          String      @id @default(cuid())
+  status      OfferStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  respondedAt DateTime?   // 承諾/辞退日時
+
+  // リレーション
+  interview   Interview   @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  interviewId String      @unique
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+}
+
+// タスク会話（ユーザー-タスクエージェント）
+model TaskConversation {
+  id        String   @id @default(cuid())
+  message   String   @db.Text
+  sender    String   // 'user' or 'agent'
+  createdAt DateTime @default(now())
+
+  // リレーション
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// タスク報告（タスクエージェント→プロジェクトエージェント）
+model TaskReport {
+  id          String   @id @default(cuid())
+  content     String   @db.Text // 報告内容
+  reportData  Json?    // 進捗、課題、予定など
+  createdAt   DateTime @default(now())
+
+  // リレーション
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+
+  @@index([taskId])
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+// プロジェクト会話（PM-プロジェクトエージェント）
+model ProjectConversation {
+  id        String   @id @default(cuid())
+  message   String   @db.Text
+  sender    String   // 'pm' or 'agent'
+  createdAt DateTime @default(now())
+
+  // リレーション
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// プロジェクト通知
+model ProjectNotification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String   @db.Text
+  type      String   // 'warning', 'info', 'success', 'error'
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // リレーション
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+// AIエージェントバンク
+model AgentBank {
+  id           String   @id @default(cuid())
+  performance  Json     // パフォーマンスデータ
+  learningData Json     // 学習データ
+  registeredAt DateTime @default(now())
+
+  // リレーション
+  agent        Agent    @relation(fields: [agentId], references: [id])
+  agentId      String
+
+  project      Project? @relation(fields: [projectId], references: [id])
+  projectId    String?
+
+  @@index([agentId])
+  @@index([projectId])
+  @@index([registeredAt])
+}

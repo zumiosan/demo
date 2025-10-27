@@ -1,0 +1,87 @@
+{
+  "scenarioId": "banking-interview-01",
+  "projectName": "銀行API統合プラットフォーム開発",
+  "userName": "佐藤 花子",
+  "messages": [
+    {
+      "role": "project_agent",
+      "content": "こんにちは。銀行API統合プラットフォーム開発プロジェクトのエージェント、BankTechアシスタントです。本日はお時間をいただきありがとうございます。",
+      "timestamp": 0
+    },
+    {
+      "role": "user_agent",
+      "content": "こんにちは。佐藤花子さんの専属エージェント、CareerNavigatorです。よろしくお願いします。佐藤さんは金融システム開発に8年の経験があります。",
+      "timestamp": 2000
+    },
+    {
+      "role": "project_agent",
+      "content": "8年とは頼もしいですね。このプロジェクトはJavaとSpring Bootを主要技術として使用しますが、経験はいかがでしょうか？",
+      "timestamp": 5000
+    },
+    {
+      "role": "user_agent",
+      "content": "佐藤さんはJavaを10年、Spring Bootを6年使用しています。特にマイクロサービスアーキテクチャの設計と実装に強みを持っています。",
+      "timestamp": 8000
+    },
+    {
+      "role": "project_agent",
+      "content": "マイクロサービスの経験は重要ですね。KafkaやRedisなどのミドルウェアの使用経験はありますか？",
+      "timestamp": 11000
+    },
+    {
+      "role": "user_agent",
+      "content": "はい、両方とも実務経験があります。前職ではKafkaを使ったイベント駆動型アーキテクチャの設計を担当し、Redisはキャッシング層として活用していました。",
+      "timestamp": 14000
+    },
+    {
+      "role": "project_agent",
+      "content": "素晴らしいです。セキュリティ面について伺います。PCI DSSやISO 27001などの金融系規制への対応経験はありますか？",
+      "timestamp": 17000
+    },
+    {
+      "role": "user_agent",
+      "content": "はい、佐藤さんは決済システム開発でPCI DSS準拠のプロジェクトに携わった経験があります。セキュリティ監査にも対応してきました。",
+      "timestamp": 20000
+    },
+    {
+      "role": "project_agent",
+      "content": "それは心強いです。Kubernetesでのデプロイやオーケストレーションの経験はいかがでしょうか？",
+      "timestamp": 23000
+    },
+    {
+      "role": "user_agent",
+      "content": "佐藤さんは過去2年間、Kubernetes上でマイクロサービスを運用してきました。HelmチャートやCI/CDパイプラインの構築も経験しています。",
+      "timestamp": 26000
+    },
+    {
+      "role": "project_agent",
+      "content": "完璧ですね。最後に、このプロジェクトは8ヶ月の予定で、高可用性システムの構築が求められます。オンコール対応なども含めた体制は可能でしょうか？",
+      "timestamp": 29000
+    },
+    {
+      "role": "user_agent",
+      "content": "はい、佐藤さんは8ヶ月間のフルコミットメントが可能です。オンコール対応や緊急時の対応にも柔軟に対応できます。",
+      "timestamp": 32000
+    },
+    {
+      "role": "project_agent",
+      "content": "ありがとうございます。佐藤花子さんは、技術力、金融系の知識、セキュリティ対応経験の全てにおいて、このプロジェクトの要件を完璧に満たしています。",
+      "timestamp": 35000
+    },
+    {
+      "role": "user_agent",
+      "content": "ありがとうございます。佐藤さんも金融インフラの重要性を理解しており、このプロジェクトで貢献できることを楽しみにしています。",
+      "timestamp": 38000
+    },
+    {
+      "role": "project_agent",
+      "content": "それでは、佐藤花子さんをコアメンバーとして迎え入れたいと思います。詳細は追ってご連絡いたします。本日はありがとうございました。",
+      "timestamp": 41000
+    }
+  ],
+  "result": {
+    "decision": "PASSED",
+    "score": 98,
+    "reasoning": "金融システム開発経験8年、Java/Spring Boot/マイクロサービスの豊富な経験、Kafka/Redis実務経験、PCI DSS対応経験、Kubernetes運用経験。全ての技術要件とコンプライアンス要件を満たす理想的な候補者。"
+  }
+}
