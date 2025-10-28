@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@/components/user-context';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Bot } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -39,6 +41,7 @@ export default function BrowseProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState<string | null>(null);
+  const [autoInterviewing, setAutoInterviewing] = useState(false);
 
   useEffect(() => {
     fetchAllProjects();
@@ -95,6 +98,38 @@ export default function BrowseProjectsPage() {
     }
   };
 
+  const handleAutoInterview = async () => {
+    if (!currentUser) {
+      alert('ユーザー情報が必要です');
+      return;
+    }
+
+    if (!confirm('すべてのプロジェクトに対して面接を申し込みますか？')) {
+      return;
+    }
+
+    try {
+      setAutoInterviewing(true);
+      const response = await fetch(`/api/users/${currentUser.id}/auto-interview`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`面接が完了しました！\n合格: ${result.passed}件\n不合格: ${result.failed}件`);
+        await fetchAllProjects();
+      } else {
+        const error = await response.json();
+        alert(error.error || '自動面接に失敗しました');
+      }
+    } catch (error) {
+      console.error('Failed to auto interview:', error);
+      alert('自動面接に失敗しました');
+    } finally {
+      setAutoInterviewing(false);
+    }
+  };
+
   const getInterviewStatus = (project: Project) => {
     if (!currentUser || !project.interviews) return null;
     return project.interviews.find((i) => i.userId === currentUser.id);
@@ -139,23 +174,40 @@ export default function BrowseProjectsPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">全プロジェクト</h1>
-          <p className="mt-2 text-gray-600">
-            興味のあるプロジェクトに面接を申し込むことができます
-          </p>
-          <div className="mt-4 flex gap-4">
-            <Link
-              href="/projects"
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              ← 参加中のプロジェクト
-            </Link>
-            <Link
-              href="/offers"
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              オファー一覧を見る →
-            </Link>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">全プロジェクト</h1>
+              <p className="mt-2 text-gray-600">
+                興味のあるプロジェクトに面接を申し込むことができます
+              </p>
+              <div className="mt-4 flex gap-4">
+                <Link
+                  href="/projects"
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  ← 参加中のプロジェクト
+                </Link>
+                <Link
+                  href="/offers"
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  オファー一覧を見る →
+                </Link>
+              </div>
+            </div>
+            {currentUser && (
+              <Button
+                onClick={handleAutoInterview}
+                disabled={autoInterviewing}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Bot className="h-4 w-4" />
+                {autoInterviewing
+                  ? '面接実施中...'
+                  : 'エージェントに全プロジェクトの面接を依頼'}
+              </Button>
+            )}
           </div>
         </div>
 

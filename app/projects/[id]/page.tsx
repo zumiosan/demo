@@ -321,7 +321,9 @@ export default function ProjectDetailPage({
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{task.name}</p>
+                    <Link href={`/tasks/${task.id}`} className="font-medium hover:text-blue-600 transition-colors">
+                      {task.name}
+                    </Link>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
                         {taskStatusLabels[task.status] || task.status}
@@ -387,9 +389,38 @@ export default function ProjectDetailPage({
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">
-              タスクがまだ作成されていません
-            </p>
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">
+                タスクがまだ作成されていません
+              </p>
+              {isPM && (
+                <Button
+                  onClick={async () => {
+                    if (!confirm('AIがプロジェクトの要件定義から自動的にタスクを生成します。よろしいですか？')) return;
+                    try {
+                      const response = await fetch(`/api/projects/${project.id}/generate-tasks`, {
+                        method: 'POST',
+                      });
+                      if (response.ok) {
+                        const data = await response.json();
+                        alert(`${data.tasksCreated}件のタスクを生成しました`);
+                        fetchProject();
+                      } else {
+                        const error = await response.json();
+                        alert(error.error || 'タスク生成に失敗しました');
+                      }
+                    } catch (error) {
+                      console.error('Failed to generate tasks:', error);
+                      alert('タスク生成に失敗しました');
+                    }
+                  }}
+                  className="gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  AIでタスクを自動生成
+                </Button>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

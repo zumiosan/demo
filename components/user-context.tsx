@@ -9,6 +9,7 @@ type UserContextType = {
   users: UserWithAgent[];
   setUsers: (users: UserWithAgent[]) => void;
   isLoading: boolean;
+  reloadUsers: (selectUserId?: string) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -18,38 +19,45 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<UserWithAgent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // ユーザー一覧を取得
-    fetch('/api/users')
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
+  // ユーザー一覧を取得する関数
+  const loadUsers = async (selectUserId?: string) => {
+    try {
+      const res = await fetch('/api/users');
+      const data = await res.json();
+      setUsers(data);
 
+      let userToSelect: UserWithAgent | null = null;
+
+      if (selectUserId) {
+        // 指定されたユーザーIDがあればそれを選択
+        userToSelect = data.find((u: UserWithAgent) => u.id === selectUserId) || null;
+      } else {
         // localStorageから保存されたユーザーIDを取得
         const savedUserId = localStorage.getItem('currentUserId');
-
         if (savedUserId) {
-          // 保存されていたユーザーを探して設定
-          const savedUser = data.find((u: UserWithAgent) => u.id === savedUserId);
-          if (savedUser) {
-            setCurrentUser(savedUser);
-          } else if (data.length > 0) {
-            // 保存されていたユーザーが見つからない場合は最初のユーザーを選択
-            setCurrentUser(data[0]);
-            localStorage.setItem('currentUserId', data[0].id);
-          }
-        } else if (data.length > 0) {
-          // 保存されていない場合は最初のユーザーを選択
-          setCurrentUser(data[0]);
-          localStorage.setItem('currentUserId', data[0].id);
+          userToSelect = data.find((u: UserWithAgent) => u.id === savedUserId) || null;
         }
+      }
 
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error('Failed to fetch users:', error);
-        setIsLoading(false);
-      });
+      // ユーザーが見つからない場合は最初のユーザーを選択
+      if (!userToSelect && data.length > 0) {
+        userToSelect = data[0];
+      }
+
+      if (userToSelect) {
+        setCurrentUser(userToSelect);
+        localStorage.setItem('currentUserId', userToSelect.id);
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
   }, []);
 
   // ユーザー切り替え時にlocalStorageを更新
@@ -62,9 +70,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // ユーザー一覧を再読み込みする関数
+  const reloadUsers = async (selectUserId?: string) => {
+    await loadUsers(selectUserId);
+  };
+
   return (
     <UserContext.Provider
-      value={{ currentUser, setCurrentUser: handleSetCurrentUser, users, setUsers, isLoading }}
+      value={{
+        currentUser,
+        setCurrentUser: handleSetCurrentUser,
+        users,
+        setUsers,
+        isLoading,
+        reloadUsers
+      }}
     >
       {children}
     </UserContext.Provider>

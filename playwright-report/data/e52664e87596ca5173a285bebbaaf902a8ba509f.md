@@ -1,0 +1,75 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Cristal Match" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: Cristal Match
+      - navigation [ref=e7]:
+        - link "ダッシュボード" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "プロジェクト" [ref=e9] [cursor=pointer]:
+          - /url: /projects
+        - link "全プロジェクト" [ref=e10] [cursor=pointer]:
+          - /url: /projects/browse
+        - link "オファー" [ref=e11] [cursor=pointer]:
+          - /url: /offers
+        - link "面接" [ref=e12] [cursor=pointer]:
+          - /url: /interviews
+        - link "プロフィール" [ref=e13] [cursor=pointer]:
+          - /url: /profile
+        - link "新規登録" [ref=e14] [cursor=pointer]:
+          - /url: /register
+      - generic [ref=e15]:
+        - button [ref=e17]:
+          - img [ref=e18]
+        - generic [ref=e21]:
+          - img [ref=e22]
+          - combobox [ref=e25]:
+            - generic:
+              - generic:
+                - img
+                - generic: 小林 拓也
+                - generic: PM
+            - img [ref=e26]
+          - generic [ref=e28]: PM
+  - main [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e32]:
+        - heading "参加中のプロジェクト" [level=1] [ref=e33]
+        - paragraph [ref=e34]: あなたが参加しているプロジェクトの一覧
+        - generic [ref=e35]:
+          - link "全プロジェクトを見る →" [ref=e36] [cursor=pointer]:
+            - /url: /projects/browse
+          - link "オファー一覧を見る →" [ref=e37] [cursor=pointer]:
+            - /url: /offers
+      - link "AIカスタマーサポートチャットボット開発 計画中 自然言語処理を活用した企業向けカスタマーサポートチャットボット AI Innovation Assistant 最新のAI技術を追求し、ユーザー体験の向上を重視する革新的なプロジェクトマネージャー 3 0 2" [ref=e39] [cursor=pointer]:
+        - /url: /projects/cmh7pcsdb000q462uraodcywp
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - heading "AIカスタマーサポートチャットボット開発" [level=3] [ref=e43]
+              - generic [ref=e44]: 計画中
+            - paragraph [ref=e45]: 自然言語処理を活用した企業向けカスタマーサポートチャットボット
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - img [ref=e48]
+              - generic [ref=e51]:
+                - paragraph [ref=e52]: AI Innovation Assistant
+                - paragraph [ref=e53]: 最新のAI技術を追求し、ユーザー体験の向上を重視する革新的なプロジェクトマネージャー
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - img [ref=e56]
+                - generic [ref=e61]: "3"
+              - generic [ref=e62]:
+                - img [ref=e63]
+                - generic [ref=e66]: "0"
+              - generic [ref=e67]:
+                - img [ref=e68]
+                - generic [ref=e70]: "2"
+  - button "Open Next.js Dev Tools" [ref=e76] [cursor=pointer]:
+    - img [ref=e77]
+  - alert [ref=e80]
+```

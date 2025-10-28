@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useUser } from '@/components/user-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Users, CheckSquare, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Bot, Users, CheckSquare, Calendar, Plus } from 'lucide-react';
 
 type Project = {
   id: string;
@@ -71,7 +72,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">参加中のプロジェクト</h1>
           <p className="text-muted-foreground mt-2">
@@ -92,6 +93,14 @@ export default function ProjectsPage() {
             </Link>
           </div>
         </div>
+        {currentUser?.role === 'PM' && (
+          <Link href="/projects/new">
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              新規プロジェクト作成
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

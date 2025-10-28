@@ -150,40 +150,40 @@ function generateAutoInterview(user: any, project: any) {
  * マッチングスコア計算（モック）
  */
 function calculateMatchScore(user: any, project: any): number {
-  let score = 50;
+  let score = 50; // ベーススコア
 
-  // スキルマッチング（より柔軟に）
+  // スキルマッチング
   const projectRequirements = project.agent?.capabilities?.requiredSkills || [];
   const userSkills = user.skills || [];
 
   let skillMatches = 0;
   for (const userSkill of userSkills) {
     for (const reqSkill of projectRequirements) {
-      const userSkillLower = userSkill.toLowerCase();
-      const reqSkillLower = reqSkill.toLowerCase();
+      const userSkillStr = String(userSkill).trim().toLowerCase();
+      const reqSkillStr = String(reqSkill).trim().toLowerCase();
 
       // 完全一致または部分一致
-      if (userSkillLower === reqSkillLower ||
-          userSkillLower.includes(reqSkillLower) ||
-          reqSkillLower.includes(userSkillLower)) {
+      if (userSkillStr === reqSkillStr ||
+          userSkillStr.includes(reqSkillStr) ||
+          reqSkillStr.includes(userSkillStr)) {
         skillMatches++;
-        break; // 同じユーザースキルで複数カウントしない
+        break;
       }
     }
   }
-  score += skillMatches * 10;
+  score += skillMatches * 10; // スキル1つにつき+10点
 
-  // 業界マッチング（より柔軟に）
-  const projectDomain = (project.agent?.capabilities?.domain || '').toLowerCase();
+  // 業界マッチング
+  const projectDomain = String(project.agent?.capabilities?.domain || '').trim().toLowerCase();
   const userIndustries = user.industries || [];
 
   const industryMatch = userIndustries.some((industry: string) => {
-    const industryLower = industry.toLowerCase();
-    return projectDomain.includes(industryLower) || industryLower.includes(projectDomain);
+    const industryStr = String(industry).trim().toLowerCase();
+    return projectDomain.includes(industryStr) || industryStr.includes(projectDomain);
   });
 
   if (industryMatch) {
-    score += 20; // 業界マッチは重要なので20点に増加
+    score += 20; // 業界マッチで+20点
   }
 
   // プロジェクトの注目領域とユーザースキルのマッチング
@@ -191,16 +191,17 @@ function calculateMatchScore(user: any, project: any): number {
   let focusMatches = 0;
   for (const userSkill of userSkills) {
     for (const focus of projectFocus) {
-      const userSkillLower = userSkill.toLowerCase();
-      const focusLower = focus.toLowerCase();
+      const userSkillStr = String(userSkill).trim().toLowerCase();
+      const focusStr = String(focus).trim().toLowerCase();
 
-      if (userSkillLower.includes(focusLower) || focusLower.includes(userSkillLower)) {
+      if (userSkillStr.includes(focusStr) || focusStr.includes(userSkillStr)) {
         focusMatches++;
         break;
       }
     }
   }
-  score += focusMatches * 5;
+  score += focusMatches * 5; // フォーカス1つにつき+5点
 
+  // スコアを0-100の範囲に制限
   return Math.min(100, Math.max(0, score));
 }

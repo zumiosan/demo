@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/components/user-context';
 import { ProfileEditDialog } from '@/components/profile-edit-dialog';
+import { AgentPerformanceCard } from '@/components/agent-performance-card';
 import { Bot, Mail, Briefcase, Calendar, Crown, Edit, Users } from 'lucide-react';
 
 type UserProfile = {
@@ -311,6 +312,16 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* エージェント実績分析 */}
+      {profile.agent && (
+        <div className="mt-6">
+          <AgentPerformanceCard
+            agentId={profile.agent.id}
+            agentName={profile.agent.name}
+          />
+        </div>
       )}
 
       {/* プロフィール編集ダイアログ */}

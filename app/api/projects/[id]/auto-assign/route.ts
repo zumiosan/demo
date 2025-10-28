@@ -19,6 +19,30 @@ export async function POST(
       include: {
         agent: true,
         tasks: true,
+        teamMembers: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                skills: true,
+                industries: true,
+                preferences: true,
+                agent: {
+                  include: {
+                    agentBanks: {
+                      orderBy: {
+                        registeredAt: 'desc',
+                      },
+                      take: 10, // 最新10件の実績を参照
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -29,19 +53,10 @@ export async function POST(
       );
     }
 
-    // 全ユーザーを取得
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        skills: true,
-        industries: true,
-        preferences: true,
-      },
-    });
+    // プロジェクトメンバーのみを取得
+    const users = project.teamMembers.map((tm) => tm.user);
 
-    // 自動割り当ての提案を取得
+    // 自動割り当ての提案を取得（エージェント実績を考慮）
     const assignments = suggestTaskAssignments(users, project.tasks, project);
 
     // 提案された割り当てを実行

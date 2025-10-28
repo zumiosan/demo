@@ -68,6 +68,8 @@ model Project {
   description     String?
   requirementsDoc String?       @db.Text // Markdown形式の要件定義書
   status          ProjectStatus @default(PLANNING)
+  startDate       DateTime?     // プロジェクト開始予定日
+  endDate         DateTime?     // プロジェクト完了予定日
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

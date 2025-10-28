@@ -10,6 +10,13 @@ type User = {
   skills: string[];
   industries: string[];
   preferences: any;
+  agent?: {
+    id: string;
+    agentBanks: {
+      performance: any;
+      learningData: any;
+    }[];
+  } | null;
 };
 
 type Task = {
@@ -35,6 +42,63 @@ export type TaskMatchResult = {
   matchedSkills: string[];
   matchedIndustries: string[];
 };
+
+/**
+ * エージェントの過去実績に基づくボーナススコアを計算
+ */
+function calculateAgentPerformanceBonus(
+  agentBanks: { performance: any; learningData: any }[],
+  task: Task
+): number {
+  if (agentBanks.length === 0) return 0;
+
+  // 平均スコアを計算
+  const scores = agentBanks
+    .filter(bank => bank.performance?.overallScore !== undefined)
+    .map(bank => bank.performance.overallScore);
+
+  if (scores.length === 0) return 0;
+
+  const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+
+  // 類似タスクの実績があるかチェック
+  const taskType = inferTaskType(task.name);
+  const hasSimilarExperience = agentBanks.some(bank => {
+    const bankTaskType = bank.learningData?.taskType;
+    return bankTaskType && bankTaskType === taskType;
+  });
+
+  // ベーススコア (0-15点)
+  let bonus = 0;
+  if (averageScore >= 90) {
+    bonus = 15;
+  } else if (averageScore >= 80) {
+    bonus = 12;
+  } else if (averageScore >= 70) {
+    bonus = 8;
+  } else {
+    bonus = 5;
+  }
+
+  // 類似タスクの経験があればボーナス (0-5点)
+  if (hasSimilarExperience) {
+    bonus += 5;
+  }
+
+  return bonus;
+}
+
+/**
+ * タスク名からタスクタイプを推測
+ */
+function inferTaskType(taskName: string): string {
+  const lowerName = taskName.toLowerCase();
+  if (lowerName.includes('設計')) return '設計';
+  if (lowerName.includes('実装') || lowerName.includes('開発')) return '実装';
+  if (lowerName.includes('テスト')) return 'テスト';
+  if (lowerName.includes('デプロイ') || lowerName.includes('リリース')) return 'デプロイ';
+  return 'その他';
+}
 
 /**
  * タスク名から必要なスキルを推測する
@@ -154,9 +218,15 @@ export function calculateMatchScore(
     reasoningParts.push('進行中のタスクの引き継ぎが可能です。');
   }
 
-  // 既に担当しているタスクがある場合は少し減点
-  // （実際のアプリではユーザーの現在の負荷を考慮する）
-  // これは簡易実装のため省略
+  // エージェント実績に基づくボーナス (最大20点)
+  if (user.agent?.agentBanks && user.agent.agentBanks.length > 0) {
+    const performanceBonus = calculateAgentPerformanceBonus(user.agent.agentBanks, task);
+    score += performanceBonus;
+
+    if (performanceBonus > 10) {
+      reasoningParts.push('過去の実績から、このタスクに適していると判断されます。');
+    }
+  }
 
   // スコアを0-100に正規化
   score = Math.min(100, Math.max(0, score));

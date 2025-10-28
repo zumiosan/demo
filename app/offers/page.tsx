@@ -317,28 +317,47 @@ export default function OffersPage() {
 
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4">
-                {selectedOffer.interview.conversationLog.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${
-                      msg.speaker.includes('ユーザー') ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
+                {selectedOffer.interview.conversationLog.map((msg, idx) => {
+                  // プロジェクトエージェント名と一致しない場合はユーザーエージェント
+                  const isProjectAgent = msg.speaker === selectedOffer.project.agent?.name;
+                  const isUserAgent = !isProjectAgent;
+                  return (
                     <div
-                      className={`max-w-[80%] rounded-lg p-4 ${
-                        msg.speaker.includes('ユーザー')
-                          ? 'bg-blue-100 text-blue-900'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}
+                      key={idx}
+                      className={`flex ${isUserAgent ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className="font-semibold text-sm mb-1">{msg.speaker}</div>
-                      <div className="text-sm">{msg.message}</div>
-                      <div className="text-xs opacity-70 mt-2">
-                        {new Date(msg.timestamp).toLocaleString('ja-JP')}
+                      <div
+                        className={`max-w-[80%] rounded-lg p-4 shadow-sm ${
+                          isUserAgent
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-900 border border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          {isUserAgent ? (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                              <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                            </svg>
+                          )}
+                          <div className={`font-semibold text-sm ${isUserAgent ? 'text-white' : 'text-gray-900'}`}>
+                            {msg.speaker}
+                          </div>
+                        </div>
+                        <div className={`${isUserAgent ? 'text-white' : 'text-gray-700'}`}>
+                          {msg.message}
+                        </div>
+                        <div className={`text-xs mt-2 ${isUserAgent ? 'text-blue-200' : 'text-gray-500'}`}>
+                          {new Date(msg.timestamp).toLocaleString('ja-JP')}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
