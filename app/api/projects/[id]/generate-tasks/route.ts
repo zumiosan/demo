@@ -47,8 +47,19 @@ export async function POST(
     // 要件定義書からタスクを生成
     const tasks = generateTasksFromRequirements(project);
 
+    const tasksWithAutomation = tasks.map((task) => ({
+      ...task,
+      autoExecutable:
+        task.autoExecutable ||
+        isAutoExecutableTask(task.name, task.description),
+    }));
+
     // タスクに日付を設定
-    const tasksWithDates = assignTaskDates(tasks, project.startDate, project.endDate);
+    const tasksWithDates = assignTaskDates(
+      tasksWithAutomation,
+      project.startDate,
+      project.endDate
+    );
 
     // タスクを一括作成
     const createdTasks = await Promise.all(
@@ -299,6 +310,53 @@ function generateDefaultTasks(): any[] {
       autoExecutable: false,
     },
   ];
+}
+
+function isAutoExecutableTask(name: string, description: string): boolean {
+  const lowerName = name.toLowerCase();
+  const lowerDescription = (description || '').toLowerCase();
+
+  const keywords = [
+    'テスト',
+    '監査',
+    'スキャン',
+    'モニタリング',
+    'クレンジング',
+    'データ収集',
+    '最適化',
+    '自動',
+    '分析',
+    '実験',
+    '検証',
+  ];
+
+  const englishKeywords = [
+    'test',
+    'qa',
+    'audit',
+    'scan',
+    'monitor',
+    'cleanup',
+    'cleanse',
+    'optimiz',
+    'auto',
+    'analysis',
+    'experiment',
+    'validate',
+  ];
+
+  const matchesJapanese = keywords.some((keyword) => {
+    const lowerKeyword = keyword.toLowerCase();
+    return lowerName.includes(lowerKeyword) || lowerDescription.includes(lowerKeyword);
+  });
+
+  if (matchesJapanese) {
+    return true;
+  }
+
+  return englishKeywords.some((keyword) => {
+    return lowerName.includes(keyword) || lowerDescription.includes(keyword);
+  });
 }
 
 async function createTaskGenerationNotification(project: any, taskCount: number) {

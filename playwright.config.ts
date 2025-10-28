@@ -2,7 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './',
-  testMatch: '**/*e2e-test.spec.ts',
+  testMatch: [
+    '**/*e2e-test.spec.ts',
+    '**/*demo-story.spec.ts',
+  ],
   fullyParallel: false, // シナリオを順次実行
   forbidOnly: !!process.env.CI,
   retries: 0,

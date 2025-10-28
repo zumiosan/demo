@@ -42,6 +42,10 @@ export default function InterviewDetailPage({
       .then((res) => res.json())
       .then((data) => {
         setScenario(data);
+        const totalMessages = Array.isArray(data.messages) ? data.messages.length : 0;
+        setCurrentMessageIndex(totalMessages > 0 ? totalMessages - 1 : 0);
+        setShowResult(true);
+        setIsPlaying(false);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -74,10 +78,11 @@ export default function InterviewDetailPage({
   }, [isPlaying, currentMessageIndex, scenario]);
 
   const handlePlay = () => {
-    if (currentMessageIndex >= (scenario?.messages.length || 0)) {
+    if (!scenario) return;
+    if (currentMessageIndex >= scenario.messages.length - 1) {
       setCurrentMessageIndex(0);
-      setShowResult(false);
     }
+    setShowResult(false);
     setIsPlaying(true);
   };
 
@@ -107,7 +112,10 @@ export default function InterviewDetailPage({
     );
   }
 
-  const displayedMessages = scenario.messages.slice(0, currentMessageIndex + 1);
+  const displayedMessages = scenario.messages.slice(
+    0,
+    Math.min(currentMessageIndex + 1, scenario.messages.length)
+  );
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -153,7 +161,8 @@ export default function InterviewDetailPage({
               </Button>
             </div>
             <div className="text-sm text-muted-foreground">
-              {currentMessageIndex} / {scenario.messages.length} メッセージ
+              {Math.min(currentMessageIndex + 1, scenario.messages.length)} /{' '}
+              {scenario.messages.length} メッセージ
             </div>
           </div>
         </CardContent>

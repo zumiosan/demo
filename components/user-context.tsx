@@ -39,14 +39,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // ユーザーが見つからない場合は最初のユーザーを選択
-      if (!userToSelect && data.length > 0) {
-        userToSelect = data[0];
-      }
-
       if (userToSelect) {
         setCurrentUser(userToSelect);
         localStorage.setItem('currentUserId', userToSelect.id);
+      } else {
+        setCurrentUser(null);
+        localStorage.removeItem('currentUserId');
       }
 
       setIsLoading(false);

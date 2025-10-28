@@ -48,8 +48,6 @@ export default function OffersPage() {
   const { currentUser } = useUser();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [showConversation, setShowConversation] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
@@ -86,7 +84,6 @@ export default function OffersPage() {
 
       if (response.ok) {
         await fetchOffers();
-        setSelectedOffer(null);
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to respond to offer');
@@ -242,15 +239,6 @@ export default function OffersPage() {
                   </div>
 
                   <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        setSelectedOffer(offer);
-                        setShowConversation(true);
-                      }}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      面接内容を見る
-                    </button>
                     {offer.status === 'PENDING' && (
                       <>
                         <button
@@ -278,6 +266,84 @@ export default function OffersPage() {
                       </Link>
                     )}
                   </div>
+
+                  <div className="mt-6 border-t pt-4">
+                    <p className="text-sm font-semibold text-gray-800 mb-3">
+                      AIエージェント会話ログ
+                    </p>
+                    <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
+                      {offer.interview.conversationLog.length === 0 ? (
+                        <p className="text-sm text-gray-500">
+                          会話ログはまだありません
+                        </p>
+                      ) : (
+                        offer.interview.conversationLog.map((msg, idx) => {
+                          const isProjectAgent =
+                            msg.speaker === offer.project.agent?.name;
+                          const isUserAgent = !isProjectAgent;
+
+                          return (
+                            <div
+                              key={`${offer.id}-${idx}`}
+                              className={`flex ${
+                                isUserAgent ? 'justify-end' : 'justify-start'
+                              }`}
+                            >
+                              <div
+                                className={`max-w-[80%] rounded-lg p-4 shadow-sm ${
+                                  isUserAgent
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white text-gray-900 border border-gray-200'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 mb-2">
+                                  {isUserAgent ? (
+                                    <svg
+                                      className="w-4 h-4"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      className="w-4 h-4"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                                      <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                                    </svg>
+                                  )}
+                                  <div
+                                    className={`font-semibold text-sm ${
+                                      isUserAgent ? 'text-white' : 'text-gray-900'
+                                    }`}
+                                  >
+                                    {msg.speaker}
+                                  </div>
+                                </div>
+                                <div
+                                  className={`text-sm ${
+                                    isUserAgent ? 'text-white' : 'text-gray-700'
+                                  }`}
+                                >
+                                  {msg.message}
+                                </div>
+                                <div
+                                  className={`text-xs mt-2 ${
+                                    isUserAgent ? 'text-blue-200' : 'text-gray-500'
+                                  }`}
+                                >
+                                  {new Date(msg.timestamp).toLocaleString('ja-JP')}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -285,121 +351,6 @@ export default function OffersPage() {
         )}
       </div>
 
-      {/* 面接会話ログモーダル */}
-      {showConversation && selectedOffer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    面接内容 - {selectedOffer.project.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    スコア: <span className={`font-bold ${getScoreColor(selectedOffer.interview.score)}`}>
-                      {selectedOffer.interview.score}点
-                    </span>
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowConversation(false);
-                    setSelectedOffer(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-4">
-                {selectedOffer.interview.conversationLog.map((msg, idx) => {
-                  // プロジェクトエージェント名と一致しない場合はユーザーエージェント
-                  const isProjectAgent = msg.speaker === selectedOffer.project.agent?.name;
-                  const isUserAgent = !isProjectAgent;
-                  return (
-                    <div
-                      key={idx}
-                      className={`flex ${isUserAgent ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[80%] rounded-lg p-4 shadow-sm ${
-                          isUserAgent
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white text-gray-900 border border-gray-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          {isUserAgent ? (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                              <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                            </svg>
-                          )}
-                          <div className={`font-semibold text-sm ${isUserAgent ? 'text-white' : 'text-gray-900'}`}>
-                            {msg.speaker}
-                          </div>
-                        </div>
-                        <div className={`${isUserAgent ? 'text-white' : 'text-gray-700'}`}>
-                          {msg.message}
-                        </div>
-                        <div className={`text-xs mt-2 ${isUserAgent ? 'text-blue-200' : 'text-gray-500'}`}>
-                          {new Date(msg.timestamp).toLocaleString('ja-JP')}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="p-6 border-t bg-gray-50">
-              <div className="flex gap-3">
-                {selectedOffer.status === 'PENDING' && (
-                  <>
-                    <button
-                      onClick={() => {
-                        handleOfferAction(selectedOffer.id, 'accept');
-                        setShowConversation(false);
-                      }}
-                      disabled={processing}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    >
-                      このオファーを承諾する
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleOfferAction(selectedOffer.id, 'reject');
-                        setShowConversation(false);
-                      }}
-                      disabled={processing}
-                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
-                    >
-                      このオファーを辞退する
-                    </button>
-                  </>
-                )}
-                {selectedOffer.status === 'ACCEPTED' && (
-                  <Link
-                    href={`/projects/${selectedOffer.project.id}`}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-center transition-colors"
-                  >
-                    プロジェクトを見る
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

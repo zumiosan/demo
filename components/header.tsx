@@ -11,6 +11,7 @@ import {
 } from './ui/select';
 import { Badge } from './ui/badge';
 import { User, Crown, Bell } from 'lucide-react';
+import Image from 'next/image';
 
 interface Notification {
   id: string;
@@ -74,13 +75,14 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <a className="mr-6 flex items-center space-x-2" href="/">
+            <Image src="/logo.png" alt="Cristal Match" width={32} height={32} className="rounded" />
             <span className="font-bold text-xl">Cristal Match</span>
           </a>
         </div>
 
         <nav className="flex items-center gap-6 text-sm flex-1">
           <a
-            href="/"
+            href="/dashboard"
             className="transition-colors hover:text-foreground/80 text-foreground/60"
           >
             ダッシュボード

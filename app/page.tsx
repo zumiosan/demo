@@ -1,264 +1,224 @@
 'use client';
 
-import { useState } from 'react';
-import { useUser } from '@/components/user-context';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Bot, Briefcase, Users, CheckCircle, Crown, Sparkles } from 'lucide-react';
+import { Bot, Briefcase, Users, Sparkles, TrendingUp, Shield, Zap } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useUser } from '@/components/user-context';
 
-export default function Home() {
-  const { currentUser, isLoading } = useUser();
-  const [autoInterviewing, setAutoInterviewing] = useState(false);
-  const [autoInterviewResult, setAutoInterviewResult] = useState<any>(null);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground">読み込み中...</p>
-      </div>
-    );
-  }
-
-  if (!currentUser) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground">ユーザーを選択してください</p>
-      </div>
-    );
-  }
-
-  const handleAutoInterview = async () => {
-    if (!currentUser) return;
-
-    try {
-      setAutoInterviewing(true);
-      setAutoInterviewResult(null);
-
-      const response = await fetch(`/api/users/${currentUser.id}/auto-interview`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAutoInterviewResult(data);
-      } else {
-        const error = await response.json();
-        alert(error.error || '自動面接に失敗しました');
-      }
-    } catch (error) {
-      console.error('Failed to auto-interview:', error);
-      alert('自動面接に失敗しました');
-    } finally {
-      setAutoInterviewing(false);
-    }
-  };
+export default function HomePage() {
+  const { currentUser } = useUser();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">ダッシュボード</h1>
-        <p className="text-muted-foreground mt-2">
-          AIエージェントによるプロジェクトマッチングと管理
-        </p>
-      </div>
-
-      {/* ユーザー情報カード */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            ユーザー情報
-          </CardTitle>
-          <CardDescription>現在選択中のユーザー</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="font-semibold text-lg">{currentUser.name}</p>
-              {currentUser.role === 'PM' && <Crown className="h-4 w-4 text-yellow-600" />}
-              <Badge variant={currentUser.role === 'PM' ? 'default' : 'outline'}>
-                {currentUser.role === 'PM' ? 'プロジェクトマネージャー' : 'メンバー'}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">{currentUser.email}</p>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium mb-2">スキル</p>
-            <div className="flex flex-wrap gap-2">
-              {currentUser.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium mb-2">興味のある業界</p>
-            <div className="flex flex-wrap gap-2">
-              {currentUser.industries.map((industry) => (
-                <span
-                  key={industry}
-                  className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800"
-                >
-                  {industry}
-                </span>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 専属エージェント情報 */}
-      {currentUser.agent && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              専属AIエージェント
-            </CardTitle>
-            <CardDescription>あなたをサポートするAIエージェント</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="font-semibold text-lg">{currentUser.agent.name}</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {currentUser.agent.personality}
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative py-20 px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            <div className="flex-1 space-y-6">
+              <div className="flex items-center gap-2">
+                <Image src="/logo.png" alt="Cristal Match" width={48} height={48} className="rounded" />
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Cristal Match
+                </h1>
+              </div>
+              <p className="text-3xl font-bold text-gray-900">
+                AIエージェントが実現する
+                <br />
+                次世代プロジェクトマッチング
               </p>
-            </div>
-            <div className="pt-3 border-t">
-              <button
-                onClick={handleAutoInterview}
-                disabled={autoInterviewing}
-                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                {autoInterviewing ? '面接実施中...' : 'エージェントに全プロジェクトの面接を依頼'}
-              </button>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                AIエージェントが自動的に全プロジェクトと面接を行い、オファーを取得します
+              <p className="text-xl text-gray-600">
+                あなたのスキルと経験を最大限に活かせるプロジェクトを、
+                <br />
+                専属AIエージェントが見つけ出します
               </p>
+              <div className="flex gap-4">
+                {currentUser ? (
+                  <Link href="/dashboard">
+                    <Button size="lg" className="text-lg px-8">
+                      ダッシュボードへ
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/register">
+                    <Button size="lg" className="text-lg px-8">
+                      無料で始める
+                    </Button>
+                  </Link>
+                )}
+                <Link href="/projects/browse">
+                  <Button size="lg" variant="outline" className="text-lg px-8">
+                    プロジェクトを見る
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 自動面接結果 */}
-      {autoInterviewResult && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-900">
-              <CheckCircle className="h-5 w-5" />
-              自動面接完了
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <p className="text-sm text-blue-800">
-                {autoInterviewResult.interviewsCompleted}件のプロジェクトと面接を実施しました
-              </p>
-              <div className="space-y-2">
-                {autoInterviewResult.results.map((result: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-md text-sm ${
-                      result.result === 'PASSED'
-                        ? 'bg-green-100 text-green-900'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">{result.projectName}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs">スコア: {result.score}点</span>
-                        <Badge
-                          variant={result.result === 'PASSED' ? 'default' : 'outline'}
-                          className={result.result === 'PASSED' ? 'bg-green-600' : ''}
-                        >
-                          {result.result === 'PASSED' ? '合格・オファー送信済み' : '不合格'}
-                        </Badge>
+            <div className="flex-1">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg blur-3xl opacity-20"></div>
+                <Card className="relative">
+                  <CardContent className="p-8">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                        <Bot className="h-8 w-8 text-blue-600" />
+                        <div>
+                          <p className="font-semibold">AIエージェントがマッチング</p>
+                          <p className="text-sm text-gray-600">あなたに最適なプロジェクトを提案</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">
+                        <Sparkles className="h-8 w-8 text-purple-600" />
+                        <div>
+                          <p className="font-semibold">自動面接システム</p>
+                          <p className="text-sm text-gray-600">エージェント同士が事前に適性を判断</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-4 bg-pink-50 rounded-lg">
+                        <TrendingUp className="h-8 w-8 text-pink-600" />
+                        <div>
+                          <p className="font-semibold">キャリア成長支援</p>
+                          <p className="text-sm text-gray-600">継続的なスキル分析とアドバイス</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  </CardContent>
+                </Card>
               </div>
-              <a
-                href="/offers"
-                className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mt-4"
-              >
-                オファー一覧を見る
-              </a>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </div>
+      </section>
 
-      {/* ステータスカード */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              参加プロジェクト
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              現在参加中のプロジェクト
-            </p>
-          </CardContent>
-        </Card>
+      {/* Features Section */}
+      <section className="py-20 px-4 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">主要機能</h2>
+            <p className="text-gray-600">AIエージェントが提供する革新的な機能</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card>
+              <CardHeader>
+                <Bot className="h-12 w-12 text-blue-600 mb-4" />
+                <CardTitle>専属AIエージェント</CardTitle>
+                <CardDescription>
+                  各ユーザーに1体の専属AIエージェントが付き、スキル・経験・希望を深く理解してサポート
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Users className="h-12 w-12 text-purple-600 mb-4" />
+                <CardTitle>自動マッチング</CardTitle>
+                <CardDescription>
+                  プロジェクトエージェントとユーザーエージェントが面接を行い、最適なマッチングを実現
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Briefcase className="h-12 w-12 text-pink-600 mb-4" />
+                <CardTitle>プロジェクト管理</CardTitle>
+                <CardDescription>
+                  タスク自動生成、進捗管理、チーム編成など、AIがプロジェクト運営を強力にサポート
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Zap className="h-12 w-12 text-yellow-600 mb-4" />
+                <CardTitle>リアルタイム通知</CardTitle>
+                <CardDescription>
+                  オファー、タスク割り当て、進捗状況などをリアルタイムで通知
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Shield className="h-12 w-12 text-green-600 mb-4" />
+                <CardTitle>スキル分析</CardTitle>
+                <CardDescription>
+                  プロジェクト参加履歴から自動でスキルを分析し、成長を可視化
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <TrendingUp className="h-12 w-12 text-indigo-600 mb-4" />
+                <CardTitle>キャリア提案</CardTitle>
+                <CardDescription>
+                  AIが長期的なキャリアパスを考慮し、成長につながるプロジェクトを提案
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </section>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              完了タスク
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              今月完了したタスク
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              面接実施
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              実施済みの面接
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* セットアップ完了メッセージ */}
-      <Card className="border-green-200 bg-green-50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-            <div>
-              <p className="font-medium text-green-900">システムセットアップ完了</p>
-              <p className="text-sm text-green-700 mt-1">
-                データベース接続成功（8ユーザー、3プロジェクト）
+      {/* How It Works Section */}
+      <section className="py-20 px-4 bg-gray-50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">利用の流れ</h2>
+            <p className="text-gray-600">簡単3ステップでスタート</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                1
+              </div>
+              <h3 className="text-xl font-bold mb-2">登録</h3>
+              <p className="text-gray-600">
+                スキル、経験、希望する業界・職種を登録。専属AIエージェントが生成されます。
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                2
+              </div>
+              <h3 className="text-xl font-bold mb-2">マッチング</h3>
+              <p className="text-gray-600">
+                AIエージェントが全プロジェクトと自動面接を実施。最適なプロジェクトからオファーが届きます。
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-pink-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                3
+              </div>
+              <h3 className="text-xl font-bold mb-2">参加</h3>
+              <p className="text-gray-600">
+                オファーを承認してプロジェクトに参加。AIがタスク管理やチーム運営をサポートします。
               </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-4xl font-bold mb-4">今すぐ始めましょう</h2>
+          <p className="text-xl mb-8 opacity-90">
+            AIエージェントがあなたのキャリアを次のレベルへ導きます
+          </p>
+          <div className="flex gap-4 justify-center">
+            {currentUser ? (
+              <Link href="/dashboard">
+                <Button size="lg" variant="secondary" className="text-lg px-8">
+                  ダッシュボードへ
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/register">
+                <Button size="lg" variant="secondary" className="text-lg px-8">
+                  無料で登録する
+                </Button>
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

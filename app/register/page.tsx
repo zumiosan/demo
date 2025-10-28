@@ -65,8 +65,13 @@ export default function RegisterPage() {
       }
 
       // 成功したらユーザーリストを再読み込みして新しいユーザーに切り替え
-      alert(`${data.message}\nエージェント名: ${data.user.agent.name}`);
-      await reloadUsers(data.user.id);
+      const agentName = data.user?.agent?.name || 'エージェント';
+      alert(`${data.message}\nエージェント名: ${agentName}`);
+
+      if (data.user?.id) {
+        await reloadUsers(data.user.id);
+      }
+
       router.push('/');
       router.refresh();
     } catch (err: any) {

@@ -116,7 +116,17 @@ export default function BrowseProjectsPage() {
 
       if (response.ok) {
         const result = await response.json();
-        alert(`面接が完了しました！\n合格: ${result.passed}件\n不合格: ${result.failed}件`);
+        const total = result.interviewsCompleted ?? result.results?.length ?? 0;
+        const passedCount = Array.isArray(result.results)
+          ? result.results.filter((item: any) => item?.result === 'PASSED').length
+          : result.passed ?? 0;
+        const failedCount = Array.isArray(result.results)
+          ? total - passedCount
+          : result.failed ?? 0;
+
+        alert(
+          `面接が完了しました！\n実施件数: ${total}件\n合格: ${passedCount}件\n不合格: ${failedCount}件`
+        );
         await fetchAllProjects();
       } else {
         const error = await response.json();

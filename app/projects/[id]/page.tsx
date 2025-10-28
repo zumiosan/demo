@@ -11,7 +11,7 @@ import { TaskAssignmentDialog } from '@/components/task-assignment-dialog';
 import { TaskProgressUpdater } from '@/components/task-progress-updater';
 import { TaskAutoExecutor } from '@/components/task-auto-executor';
 import { useUser } from '@/components/user-context';
-import { Bot, Users, CheckSquare, ArrowLeft, FileText, Calendar, UserPlus, Sparkles, TrendingUp, Zap } from 'lucide-react';
+import { Bot, Users, CheckSquare, ArrowLeft, FileText, Calendar, UserPlus, Sparkles, TrendingUp, Zap, MessageCircle, Send } from 'lucide-react';
 
 type ProjectDetail = {
   id: string;
@@ -116,6 +116,12 @@ export default function ProjectDetailPage({
   } | null>(null);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
 
+  // プロジェクトエージェントチャット
+  const [showAgentChat, setShowAgentChat] = useState(false);
+  const [agentConversations, setAgentConversations] = useState<any[]>([]);
+  const [agentMessage, setAgentMessage] = useState('');
+  const [isSendingAgentMessage, setIsSendingAgentMessage] = useState(false);
+
   // PMかどうかを判定
   const isPM = currentUser?.role === 'PM';
 
@@ -135,6 +141,51 @@ export default function ProjectDetailPage({
   useEffect(() => {
     fetchProject();
   }, [id]);
+
+  // プロジェクトエージェントとの会話を取得
+  const fetchAgentConversations = async () => {
+    try {
+      const response = await fetch(`/api/projects/${id}/conversations`);
+      if (response.ok) {
+        const data = await response.json();
+        setAgentConversations(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (showAgentChat) {
+      fetchAgentConversations();
+    }
+  }, [showAgentChat, id]);
+
+  // プロジェクトエージェントにメッセージを送信
+  const handleSendAgentMessage = async () => {
+    if (!agentMessage.trim() || !currentUser) return;
+
+    setIsSendingAgentMessage(true);
+    try {
+      const response = await fetch(`/api/projects/${id}/conversations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          message: agentMessage.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        setAgentMessage('');
+        await fetchAgentConversations();
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    } finally {
+      setIsSendingAgentMessage(false);
+    }
+  };
 
   const handleAutoAssign = async () => {
     setIsAutoAssigning(true);
@@ -227,6 +278,97 @@ export default function ProjectDetailPage({
                       ))}
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* チャットボタン */}
+            {isPM && (
+              <div className="pt-3 border-t">
+                <Button
+                  onClick={() => setShowAgentChat(!showAgentChat)}
+                  variant={showAgentChat ? 'default' : 'outline'}
+                  className="w-full flex items-center gap-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {showAgentChat ? 'チャットを閉じる' : 'プロジェクトエージェントとチャット'}
+                </Button>
+              </div>
+            )}
+
+            {/* チャット領域 */}
+            {showAgentChat && isPM && (
+              <div className="pt-3 border-t">
+                <div className="space-y-3">
+                  {/* 会話履歴 */}
+                  <div className="max-h-96 overflow-y-auto space-y-3 p-3 bg-gray-50 rounded-lg">
+                    {agentConversations.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        まだメッセージがありません
+                      </p>
+                    ) : (
+                      agentConversations.map((conv: any) => {
+                        const isPmMessage = conv.sender === 'pm';
+                        const isAgentMessage = conv.sender === 'agent';
+                        return (
+                          <div
+                            key={conv.id}
+                            className={`flex ${isPmMessage ? 'justify-end' : 'justify-start'}`}
+                          >
+                          <div
+                            className={`max-w-[80%] rounded-lg p-3 ${
+                              isPmMessage
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white text-gray-900 border'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              {isPmMessage ? (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                                </svg>
+                              ) : (
+                                <Bot className="w-4 h-4" />
+                              )}
+                              <span className="text-xs font-semibold">
+                                {isAgentMessage ? project.agent?.name ?? 'AIエージェント' : conv.user?.name ?? 'PM'}
+                              </span>
+                            </div>
+                            <div className="text-sm whitespace-pre-wrap">{conv.message}</div>
+                            <div className={`text-xs mt-1 ${isPmMessage ? 'text-blue-200' : 'text-gray-500'}`}>
+                              {new Date(conv.createdAt).toLocaleString('ja-JP')}
+                            </div>
+                          </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* メッセージ入力 */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={agentMessage}
+                      onChange={(e) => setAgentMessage(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendAgentMessage();
+                        }
+                      }}
+                      placeholder="メッセージを入力..."
+                      className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={isSendingAgentMessage}
+                    />
+                    <Button
+                      onClick={handleSendAgentMessage}
+                      disabled={isSendingAgentMessage || !agentMessage.trim()}
+                      size="icon"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

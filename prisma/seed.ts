@@ -13,6 +13,8 @@ async function main() {
   await prisma.teamMember.deleteMany();
   await prisma.task.deleteMany();
   await prisma.project.deleteMany();
+  await prisma.offer.deleteMany();
+  await prisma.agentBank.deleteMany();
   await prisma.agent.deleteMany();
   await prisma.user.deleteMany();
 
@@ -296,6 +298,171 @@ async function main() {
   });
   console.log(`  ✓ Created project: ${aiProject.name}`);
 
+  // ECサイトリニューアルプロジェクト
+  const ecommerceDoc = fs.readFileSync(
+    path.join(__dirname, '../doc/requirements/ecommerce-renewal.md'),
+    'utf-8'
+  );
+
+  const ecommerceProject = await prisma.project.create({
+    data: {
+      name: 'ECサイトリニューアル',
+      description: '既存のECサイトを最新技術でフルリニューアルし、ユーザー体験の向上と売上拡大を目指す',
+      requirementsDoc: ecommerceDoc,
+      status: ProjectStatus.RECRUITING,
+      startDate: new Date('2025-02-01'),
+      endDate: new Date('2025-07-31'),
+      agent: {
+        create: {
+          name: 'E-Commerce Specialist',
+          type: AgentType.PROJECT,
+          personality: 'ユーザー体験とビジネス成果の両立を重視し、データドリブンな意思決定をサポートするプロジェクトマネージャー',
+          capabilities: {
+            domain: 'Eコマース',
+            focus: ['UI/UX', 'パフォーマンス最適化', '決済システム', 'レコメンデーション'],
+            requiredSkills: ['React', 'Next.js', 'TypeScript', 'Node.js', 'PostgreSQL']
+          }
+        }
+      }
+    },
+    include: {
+      agent: true
+    }
+  });
+  console.log(`  ✓ Created project: ${ecommerceProject.name}`);
+
+  // 物流管理システムプロジェクト
+  const logisticsDoc = fs.readFileSync(
+    path.join(__dirname, '../doc/requirements/logistics-system.md'),
+    'utf-8'
+  );
+
+  const logisticsProject = await prisma.project.create({
+    data: {
+      name: '物流管理システム開発',
+      description: '倉庫管理から配送追跡まで、物流業務全体を効率化する統合管理システムの開発',
+      requirementsDoc: logisticsDoc,
+      status: ProjectStatus.PLANNING,
+      startDate: new Date('2025-03-01'),
+      endDate: new Date('2025-12-31'),
+      agent: {
+        create: {
+          name: 'Logistics Optimizer',
+          type: AgentType.PROJECT,
+          personality: '業務効率化とコスト削減を追求し、AI/機械学習を活用した最適化をリードするプロジェクトマネージャー',
+          capabilities: {
+            domain: '物流・サプライチェーン',
+            focus: ['AI/ML', 'リアルタイム処理', 'データ分析', 'マイクロサービス'],
+            requiredSkills: ['Java', 'Spring Boot', 'Kafka', 'Python', 'AI', 'React']
+          }
+        }
+      }
+    },
+    include: {
+      agent: true
+    }
+  });
+  console.log(`  ✓ Created project: ${logisticsProject.name}`);
+
+  // オンライン教育プラットフォームプロジェクト
+  const educationDoc = fs.readFileSync(
+    path.join(__dirname, '../doc/requirements/education-platform.md'),
+    'utf-8'
+  );
+
+  const educationProject = await prisma.project.create({
+    data: {
+      name: 'オンライン教育プラットフォーム開発',
+      description: '個別最適化された学習体験を提供するAI搭載オンライン教育プラットフォームの開発',
+      requirementsDoc: educationDoc,
+      status: ProjectStatus.RECRUITING,
+      startDate: new Date('2025-02-15'),
+      endDate: new Date('2025-10-15'),
+      agent: {
+        create: {
+          name: 'EduTech Innovator',
+          type: AgentType.PROJECT,
+          personality: '学習効果の最大化を目指し、AI活用と教育理論に基づいた開発を推進するプロジェクトマネージャー',
+          capabilities: {
+            domain: '教育テクノロジー',
+            focus: ['AI/ML', 'LLM', 'リアルタイム通信', 'データ分析', 'UI/UX'],
+            requiredSkills: ['Python', 'FastAPI', 'AI', 'LLM', 'React', 'WebRTC']
+          }
+        }
+      }
+    },
+    include: {
+      agent: true
+    }
+  });
+  console.log(`  ✓ Created project: ${educationProject.name}`);
+
+  // スマートシティIoTプラットフォームプロジェクト
+  const smartCityDoc = fs.readFileSync(
+    path.join(__dirname, '../doc/requirements/smart-city-iot.md'),
+    'utf-8'
+  );
+
+  const smartCityProject = await prisma.project.create({
+    data: {
+      name: 'スマートシティIoTプラットフォーム開発',
+      description: '都市インフラから収集したIoTデータを統合管理し、都市運営の最適化を実現する',
+      requirementsDoc: smartCityDoc,
+      status: ProjectStatus.PLANNING,
+      startDate: new Date('2025-04-01'),
+      endDate: new Date('2026-03-31'),
+      agent: {
+        create: {
+          name: 'Smart City Architect',
+          type: AgentType.PROJECT,
+          personality: '大規模IoTシステムの構築経験を持ち、リアルタイム処理とデータ分析を重視するプロジェクトマネージャー',
+          capabilities: {
+            domain: 'IoT・スマートシティ',
+            focus: ['IoT', 'リアルタイム処理', 'ビッグデータ', 'AI/ML', 'インフラ'],
+            requiredSkills: ['Go', 'Kafka', 'Python', 'AI', 'Kubernetes', 'TimescaleDB']
+          }
+        }
+      }
+    },
+    include: {
+      agent: true
+    }
+  });
+  console.log(`  ✓ Created project: ${smartCityProject.name}`);
+
+  // ブロックチェーン決済システムプロジェクト
+  const blockchainDoc = fs.readFileSync(
+    path.join(__dirname, '../doc/requirements/blockchain-payment.md'),
+    'utf-8'
+  );
+
+  const blockchainProject = await prisma.project.create({
+    data: {
+      name: 'ブロックチェーン決済システム開発',
+      description: '暗号資産とステーブルコインに対応した、安全で透明性の高いブロックチェーン決済システムの開発',
+      requirementsDoc: blockchainDoc,
+      status: ProjectStatus.RECRUITING,
+      startDate: new Date('2025-03-15'),
+      endDate: new Date('2025-12-15'),
+      agent: {
+        create: {
+          name: 'Blockchain Security Expert',
+          type: AgentType.PROJECT,
+          personality: 'セキュリティとコンプライアンスを最優先し、分散型システムの設計に精通したプロジェクトマネージャー',
+          capabilities: {
+            domain: 'ブロックチェーン・暗号資産',
+            focus: ['ブロックチェーン', 'セキュリティ', '暗号技術', 'スマートコントラクト', 'コンプライアンス'],
+            requiredSkills: ['Go', 'Solidity', 'Node.js', 'React', 'PostgreSQL', 'セキュリティ']
+          }
+        }
+      }
+    },
+    include: {
+      agent: true
+    }
+  });
+  console.log(`  ✓ Created project: ${blockchainProject.name}`);
+
   // タスクの作成
   console.log('📋 Creating tasks...');
 
@@ -412,14 +579,119 @@ async function main() {
   }
   console.log(`  ✓ Added ${aiMembers.length} team members to ${aiProject.name}`);
 
+  // ECサイトリニューアルプロジェクト: PM + 5名のメンバー
+  const ecommerceMembers = [
+    { userId: kobayashi!.id, role: 'プロジェクトマネージャー' },
+    { userId: tanaka!.id, role: 'フロントエンドエンジニア' },
+    { userId: createdUsers.find(u => u.email === 'takahashi@example.com')!.id, role: 'UI/UXデザイナー' },
+    { userId: createdUsers.find(u => u.email === 'watanabe@example.com')!.id, role: 'インフラエンジニア' },
+    { userId: createdUsers.find(u => u.email === 'suzuki@example.com')!.id, role: 'AIエンジニア（レコメンデーション）' },
+  ];
+
+  for (const member of ecommerceMembers) {
+    await prisma.teamMember.create({
+      data: {
+        projectId: ecommerceProject.id,
+        userId: member.userId,
+        role: member.role,
+      },
+    });
+  }
+  console.log(`  ✓ Added ${ecommerceMembers.length} team members to ${ecommerceProject.name}`);
+
+  // 物流管理システムプロジェクト: PM + 5名のメンバー
+  const logisticsMembers = [
+    { userId: matsumoto!.id, role: 'プロジェクトマネージャー' },
+    { userId: sato!.id, role: 'バックエンドエンジニア' },
+    { userId: createdUsers.find(u => u.email === 'suzuki@example.com')!.id, role: 'AI/MLエンジニア' },
+    { userId: tanaka!.id, role: 'フロントエンドエンジニア' },
+    { userId: createdUsers.find(u => u.email === 'watanabe@example.com')!.id, role: 'インフラエンジニア' },
+  ];
+
+  for (const member of logisticsMembers) {
+    await prisma.teamMember.create({
+      data: {
+        projectId: logisticsProject.id,
+        userId: member.userId,
+        role: member.role,
+      },
+    });
+  }
+  console.log(`  ✓ Added ${logisticsMembers.length} team members to ${logisticsProject.name}`);
+
+  // オンライン教育プラットフォームプロジェクト: PM + 5名のメンバー
+  const educationMembers = [
+    { userId: kimura!.id, role: 'プロジェクトマネージャー' },
+    { userId: createdUsers.find(u => u.email === 'nakamura@example.com')!.id, role: 'AIエンジニア' },
+    { userId: tanaka!.id, role: 'フロントエンドエンジニア' },
+    { userId: yamada!.id, role: 'データエンジニア' },
+    { userId: createdUsers.find(u => u.email === 'takahashi@example.com')!.id, role: 'UI/UXデザイナー' },
+  ];
+
+  for (const member of educationMembers) {
+    await prisma.teamMember.create({
+      data: {
+        projectId: educationProject.id,
+        userId: member.userId,
+        role: member.role,
+      },
+    });
+  }
+  console.log(`  ✓ Added ${educationMembers.length} team members to ${educationProject.name}`);
+
+  // スマートシティIoTプラットフォームプロジェクト: PM + 6名のメンバー
+  const smartCityMembers = [
+    { userId: matsumoto!.id, role: 'プロジェクトマネージャー' },
+    { userId: sato!.id, role: 'バックエンドエンジニア（Go）' },
+    { userId: createdUsers.find(u => u.email === 'suzuki@example.com')!.id, role: 'AI/MLエンジニア' },
+    { userId: yamada!.id, role: 'データエンジニア' },
+    { userId: createdUsers.find(u => u.email === 'watanabe@example.com')!.id, role: 'インフラエンジニア' },
+    { userId: tanaka!.id, role: 'フロントエンドエンジニア' },
+  ];
+
+  for (const member of smartCityMembers) {
+    await prisma.teamMember.create({
+      data: {
+        projectId: smartCityProject.id,
+        userId: member.userId,
+        role: member.role,
+      },
+    });
+  }
+  console.log(`  ✓ Added ${smartCityMembers.length} team members to ${smartCityProject.name}`);
+
+  // ブロックチェーン決済システムプロジェクト: PM + 5名のメンバー
+  const blockchainMembers = [
+    { userId: kobayashi!.id, role: 'プロジェクトマネージャー' },
+    { userId: sato!.id, role: 'バックエンドエンジニア（Go）' },
+    { userId: ito!.id, role: 'セキュリティエンジニア' },
+    { userId: tanaka!.id, role: 'フロントエンドエンジニア' },
+    { userId: createdUsers.find(u => u.email === 'watanabe@example.com')!.id, role: 'インフラエンジニア' },
+  ];
+
+  for (const member of blockchainMembers) {
+    await prisma.teamMember.create({
+      data: {
+        projectId: blockchainProject.id,
+        userId: member.userId,
+        role: member.role,
+      },
+    });
+  }
+  console.log(`  ✓ Added ${blockchainMembers.length} team members to ${blockchainProject.name}`);
+
+  const totalTeamMembers = healthcareMembers.length + bankingMembers.length + aiMembers.length +
+                          ecommerceMembers.length + logisticsMembers.length + educationMembers.length +
+                          smartCityMembers.length + blockchainMembers.length;
+
   console.log('✅ Seeding completed successfully!');
   console.log(`
 Summary:
   - Users: ${users.length} (PM: 3, Member: 8)
   - User Agents: ${users.length}
-  - Projects: 3
-  - Project Agents: 3
-  - Team Members: ${healthcareMembers.length + bankingMembers.length + aiMembers.length}
+  - Projects: 8
+  - Project Agents: 8
+  - Team Members: ${totalTeamMembers}
   - Tasks: ${healthcareTasks.length}
   `);
 }
