@@ -1,10 +1,16 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
+import { execSync } from 'node:child_process';
 
 const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
 
 const MEMBER_COUNT = 10;
 const DEFAULT_SKILLS = ['React', 'TypeScript', 'AI'];
 const DEFAULT_INDUSTRIES = ['AI', '医療系'];
+const STEP_DELAY = 600;
+
+test.beforeAll(async () => {
+  await resetDatabase();
+});
 
 type Role = 'PM' | 'MEMBER';
 
@@ -45,6 +51,11 @@ test.describe('デモストーリ再現用シナリオ', () => {
       email: `member-${index + 1}-${timestamp}@example.com`,
       role: 'MEMBER',
     }));
+
+    // TOPページ表示
+    await page.goto(BASE_URL);
+    await page.waitForLoadState('networkidle');
+    await delay(page);
 
     // PMユーザーを登録
     await registerUser(page, pmUser);
@@ -96,15 +107,21 @@ async function registerUser(page: Page, user: RegisteredUser) {
   await page.goto(`${BASE_URL}/register`);
   await page.waitForLoadState('networkidle');
 
-  await page.fill('#name', user.name);
-  await page.fill('#email', user.email);
-  await page.selectOption('#role', user.role);
+  const nameInput = page.locator('#name');
+  await typeSlow(page, nameInput, user.name);
+
+  const emailInput = page.locator('#email');
+  await typeSlow(page, emailInput, user.email);
+
+  const roleSelect = page.locator('#role');
+  await bringPointer(page, roleSelect);
+  await roleSelect.selectOption(user.role);
+  await delay(page);
 
   const selectBadge = async (label: string) => {
     const badge = page.locator('div.cursor-pointer').filter({ hasText: label }).first();
     if (await badge.isVisible()) {
-      await badge.click();
-      await page.waitForTimeout(150);
+      await clickWithEffects(page, badge);
     } else {
       console.warn(`[WARN] "${label}" のバッジが見つかりませんでした`);
     }
@@ -118,8 +135,9 @@ async function registerUser(page: Page, user: RegisteredUser) {
     await selectBadge(industry);
   }
 
+  const submitButton = page.locator('button[type="submit"]');
   const dialogPromise = page.waitForEvent('dialog').catch(() => null);
-  await page.click('button[type="submit"]', { noWaitAfter: true });
+  await clickWithEffects(page, submitButton);
   const dialog = await dialogPromise;
 
   if (dialog) {
@@ -131,20 +149,22 @@ async function registerUser(page: Page, user: RegisteredUser) {
 
   await page.waitForURL(`${BASE_URL}/`, { timeout: 15000 });
   await page.waitForLoadState('networkidle');
+  await delay(page);
 }
 
 async function selectUser(page: Page, userName: string) {
   console.log(`[SELECT USER] ${userName}`);
   await page.goto(BASE_URL);
   await page.waitForLoadState('networkidle');
+  await delay(page);
 
   const trigger = page.locator('[role="combobox"]');
-  await trigger.click();
+  await clickWithEffects(page, trigger);
 
   const option = page.getByRole('option', { name: userName });
-  await option.first().click();
+  await clickWithEffects(page, option.first());
   await expect(trigger).toContainText(userName, { timeout: 5000 });
-  await page.waitForTimeout(300);
+  await delay(page);
 }
 
 async function createProject(page: Page, pmUser: RegisteredUser, timestamp: number): Promise<ProjectInfo> {
@@ -160,19 +180,19 @@ async function createProject(page: Page, pmUser: RegisteredUser, timestamp: numb
 - 医療データの可視化
 - セキュリティとプライバシーの確保`;
 
-  await page.fill('#name', projectName);
-  await page.fill('#description', 'Playwrightによるデモ録画用のプロジェクトです。');
-  await page.fill('#requirementsDoc', requirementsDoc);
+  await typeSlow(page, page.locator('#name'), projectName);
+  await typeSlow(page, page.locator('#description'), 'Playwrightによるデモ録画用のプロジェクトです。');
+  await typeSlow(page, page.locator('#requirementsDoc'), requirementsDoc);
 
   const dialogPromise = page.waitForEvent('dialog').catch(() => null);
-  await page.click('button:has-text("プロジェクトを作成")', { noWaitAfter: true });
+  await clickWithEffects(page, page.locator('button:has-text("プロジェクトを作成")'));
   const dialog = await dialogPromise;
   if (dialog) {
     await dialog.accept();
   }
 
   await page.waitForURL(/\/projects\/[a-zA-Z0-9-]+$/, { timeout: 20000 }).catch(() => null);
-  await page.waitForTimeout(1000);
+  await delay(page);
   const projectUrl = page.url();
 
   expect(projectUrl).toContain('/projects/');
@@ -185,6 +205,7 @@ async function runAutoInterviews(page: Page) {
   console.log('[MEMBER] 全プロジェクト面接を自動実行');
   await page.goto(`${BASE_URL}/projects/browse`);
   await page.waitForLoadState('networkidle');
+  await delay(page);
 
   const autoInterviewButton = page.locator('button:has-text("エージェントに全プロジェクトの面接を依頼")');
   await expect(autoInterviewButton).toBeVisible();
@@ -196,19 +217,22 @@ async function runAutoInterviews(page: Page) {
     });
   });
 
-  await autoInterviewButton.click();
+  await clickWithEffects(page, autoInterviewButton);
   await confirmHandled;
 
-  const alertDialog = await page.waitForEvent('dialog');
-  await alertDialog.accept();
+  const alertDialog = await page.waitForEvent('dialog').catch(() => null);
+  if (alertDialog) {
+    await alertDialog.accept();
+  }
 
-  await page.waitForTimeout(500);
+  await delay(page);
 }
 
 async function openOffersAndAccept(page: Page) {
   console.log('[MEMBER] オファーを確認して承諾');
   await page.goto(`${BASE_URL}/offers`);
   await page.waitForLoadState('networkidle');
+  await delay(page);
 
   const conversationHeading = page.locator('text=AIエージェント会話ログ');
   const headingVisible = await conversationHeading.first().waitFor({ state: 'visible', timeout: 15000 }).then(() => true).catch(() => false);
@@ -218,8 +242,7 @@ async function openOffersAndAccept(page: Page) {
 
   const acceptButton = page.locator('button:has-text("承諾する")').first();
   if (await acceptButton.isVisible()) {
-    await acceptButton.click();
-    await page.waitForTimeout(500);
+    await clickWithEffects(page, acceptButton);
   }
 }
 
@@ -233,13 +256,16 @@ async function generateTasksIfNeeded(page: Page) {
         resolve();
       });
     });
-    await generateButton.click();
+    await clickWithEffects(page, generateButton);
     await confirmHandled;
 
-    const alertDialog = await page.waitForEvent('dialog');
-    await alertDialog.accept();
+    const alertDialog = await page.waitForEvent('dialog').catch(() => null);
+    if (alertDialog) {
+      await alertDialog.accept();
+    }
 
     await page.waitForSelector('button:has-text("AI自動実行")');
+    await delay(page);
   } else {
     console.log('[PM] タスクは既に存在します');
   }
@@ -250,15 +276,17 @@ async function autoAssignTasks(page: Page) {
   await page.locator('div.flex.items-center.justify-between.p-3').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => null);
   const assignButton = page.locator('button:has-text("AI自動割り当て")');
   await expect(assignButton).toBeVisible({ timeout: 15000 });
+  await delay(page);
 
   await Promise.all([
     page.waitForResponse((response) =>
       response.url().includes('/auto-assign') && response.status() === 200
     ),
-    assignButton.click(),
+    clickWithEffects(page, assignButton),
   ]);
 
   await page.waitForSelector('span:has-text("担当:")');
+  await delay(page);
 }
 
 async function getFirstAssignedTask(page: Page): Promise<AssignedTaskInfo> {
@@ -295,23 +323,24 @@ async function viewProjectAndInteractWithTask(
   console.log(`[MEMBER] タスク「${assignedTask.taskName}」でエージェントと会話`);
   await page.goto(`${BASE_URL}${assignedTask.taskUrl}`);
   await page.waitForLoadState('networkidle');
+  await delay(page);
 
   const chatInput = page.locator('input[placeholder*="メッセージ"]');
-  await chatInput.fill('このタスクの進め方についてアドバイスをください。');
-  await page.click('button:has-text("送信")');
-  await page.waitForTimeout(1500);
+  await typeSlow(page, chatInput, 'このタスクの進め方についてアドバイスをください。');
+  await clickWithEffects(page, chatInput.locator('xpath=ancestor::form[1]//button'));
 
   // プロジェクト詳細に戻って進捗更新
   console.log('[MEMBER] 進捗を更新');
   await page.goto(projectInfo.url);
   await page.waitForLoadState('networkidle');
+  await delay(page);
 
   const taskCard = page
     .locator('div.flex.items-center.justify-between.p-3')
     .filter({ hasText: assignedTask.assignedTo });
 
   await expect(taskCard.first()).toBeVisible();
-  await taskCard.first().locator('button:has-text("進捗更新")').click();
+  await clickWithEffects(page, taskCard.first().locator('button:has-text("進捗更新")'));
 
   const dialog = page.locator('[role="dialog"]').last();
   const slider = dialog.locator('[role="slider"]').first();
@@ -320,9 +349,9 @@ async function viewProjectAndInteractWithTask(
     await slider.press('ArrowRight');
   }
 
-  await dialog.locator('button:has-text("更新")').click();
+  await clickWithEffects(page, dialog.locator('button:has-text("更新")'));
   await dialog.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => null);
-  await page.waitForTimeout(1000);
+  await delay(page);
 }
 
 async function talkWithProjectAgent(page: Page) {
@@ -331,31 +360,64 @@ async function talkWithProjectAgent(page: Page) {
   const closeButton = page.getByRole('button', { name: 'チャットを閉じる' });
 
   if (!(await closeButton.isVisible())) {
-    await openButton.scrollIntoViewIfNeeded();
-    await openButton.click();
+    await clickWithEffects(page, openButton);
     await expect(closeButton).toBeVisible({ timeout: 5000 });
   }
 
   const agentInput = page.getByPlaceholder('メッセージを入力...');
   const inputField = agentInput.first();
   await expect(inputField).toBeVisible();
-  await inputField.fill('チームの進捗状況を教えてください。');
+  await typeSlow(page, inputField, 'チームの進捗状況を教えてください。');
 
   await inputField.evaluate((input: HTMLInputElement) => {
     const form = input.closest('form');
     (form?.querySelector('button') as HTMLButtonElement | null)?.click();
   });
-  await page.waitForTimeout(1500);
+  await delay(page, 2);
 }
 
 async function runAiAutoExecution(page: Page) {
   console.log('[PM] AI自動実行を開始');
   const autoExecButton = page.locator('button:has-text("AI自動実行")').first();
   await expect(autoExecButton).toBeVisible();
-  await autoExecButton.click();
+  await clickWithEffects(page, autoExecButton);
 
   const dialog = page.locator('[role="dialog"]').last();
-  await dialog.locator('button:has-text("実行開始")').click();
+  await clickWithEffects(page, dialog.locator('button:has-text("実行開始")'));
   await dialog.locator('text=実行完了').waitFor({ timeout: 20_000 });
-  await dialog.locator('button:has-text("閉じる")').click();
+  await clickWithEffects(page, dialog.locator('button:has-text("閉じる")'));
+}
+
+async function resetDatabase() {
+  console.log('[DB] Resetting database...');
+  execSync('npm run db:reset', { stdio: 'inherit' });
+  console.log('[DB] Seeding database with sample data...');
+  execSync('npm run seed', { stdio: 'inherit' });
+}
+
+async function delay(page: Page, factor = 1) {
+  await page.waitForTimeout(STEP_DELAY * factor);
+}
+
+async function bringPointer(page: Page, locator: Locator) {
+  await locator.scrollIntoViewIfNeeded();
+  const box = await locator.boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 20 });
+  }
+  await page.waitForTimeout(120);
+}
+
+async function clickWithEffects(page: Page, locator: Locator) {
+  await bringPointer(page, locator);
+  await locator.click({ delay: 60 });
+  await delay(page);
+}
+
+async function typeSlow(page: Page, locator: Locator, text: string) {
+  await bringPointer(page, locator);
+  await locator.click({ clickCount: 3 });
+  await locator.fill('');
+  await locator.type(text, { delay: 70 });
+  await delay(page);
 }
